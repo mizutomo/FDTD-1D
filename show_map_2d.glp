@@ -1,0 +1,9 @@
+unset autoscale x
+unset autoscale y
+set xrange [0:1000]
+set yrange [0:2e-12]
+plot "fdtd_line.csv" every :::idx::idx using 1:2 title "waveform" w l
+pause 0.1
+idx=idx+1
+if( idx < 5000 ) reread
+

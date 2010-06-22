@@ -82,6 +82,7 @@ void hist_update(double* ey, double* hist_ey)
 	hist_ey[3] = ey[NX];
 }
 
+// データ出力1(ヘッダ)
 void print_point_value_header(FILE* fp)
 {
 	fprintf(fp, "#Time(1), Stimulus(2), hz[10](3), hz[20](4), hz[30](5), hz[40](6), hz[50](7), hz[60](8), hz[70](9), hz[80](10), hz[90](11)\n");
@@ -95,6 +96,19 @@ void print_point_value(FILE* fp, double* data, double time, double stimulus)
 					data[100], data[200], data[300], 
 					data[400], data[500], data[600], 
 					data[700], data[800], data[900]);
+}
+
+// データ出力2
+void print_line_value(FILE* fp, double* data, int step)
+{
+	int i;
+
+	fprintf(fp, "# STEP = %d\n", step);
+
+	for (i = 0; i < NX; i++) {
+		fprintf(fp, "%d, %g\n", i, data[i]);
+	}
+	fprintf(fp, "\n");
 }
 
 // 入力源(sine波)
@@ -114,7 +128,7 @@ double calc_stimulus(int step, double dt)
 double calc_stimulus(int step, double dt)
 {
 	double tc = 10e-9; 
-	double pw = 5e-9;
+	double pw = 0.1e-9;
 	double t_current = ((float)step - 0.5) * dt;
 	double t_eff;
 
@@ -129,11 +143,12 @@ void calc_fdtd(double* ey, double* hz, double* dx, double dt, double* hist_ey)
 	int step;
 	int last_step = (int)(STOP_TIME/dt);
 	double stimulus;
-	FILE *fp1;
+	FILE *fp1, *fp2;
 
 	// Hz[50] ~ Hz[90]の点のデータを出力するファイル
-	fp1 = fopen("fdtd.csv", "w");
+	fp1 = fopen("fdtd_point.csv", "w");
 	print_point_value_header(fp1);
+	fp2 = fopen("fdtd_line.csv", "w");
 
 	// メインループ
 	for (step = 0; step <= last_step; step++) {
@@ -159,8 +174,10 @@ void calc_fdtd(double* ey, double* hz, double* dx, double dt, double* hist_ey)
 
 		// 波形出力
 		print_point_value(fp1, hz, step*dt, stimulus);
+		if (step % 100 == 0) print_line_value(fp2, hz, step);
 	}
 	fclose(fp1);
+	fclose(fp2);
 }
 
 // 出力ファイルヘッダ
