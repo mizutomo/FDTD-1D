@@ -1,0 +1,3 @@
+*.o
+fdtd
+wave*/fdtd_map.csv
