@@ -2,7 +2,7 @@
 
 CC = /usr/bin/gcc
 #CC = icc
-OBJS = fdtd.o normal.o berengerPML.o
+OBJS = fdtd.o 
 ##CFLAGS = -g -Wall -O2 -pedantic
 CFLAGS = -g -Wall -O2 -fopenmp
 DEBUGFLAG = -pg
@@ -21,9 +21,5 @@ $(TARG): $(OBJS)
 clean:
 	rm $(OBJS) $(TARG)
 
-# fdtd CFL NORMAL BCK_FLAG CALIB_FLAG
-# BCK : 0.1, 0.35, 0.5, 1.0, 
-test_bck:
-	./$(TARG) 1.0 0 1 0
-test_normal:
-	./$(TARG) 1.0 0 0 0
+test:
+	./$(TARG)
