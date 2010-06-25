@@ -2,7 +2,8 @@
 %%% Description: FDTD 1-Dimentional Code
 
 -module(fdtd).
--export([main/0]).
+%-export([main/0]).
+-compile(export_all).
 
 %% Physical Constant
 -record(physics, {pi, light, permittivity, permeability}).
@@ -26,7 +27,7 @@ calc_const() ->
 		DX = PX / NX,
 		Area = #area{px = PX, nx = NX, dx = DX},
 		CFL = 0.5,
-		STOP_TIME = 50.0e-9,
+		STOP_TIME = 30.0e-9,
 		DT = CFL / (LIGHT * (1.0 / DX)),
 		LAST_STEP = erlang:trunc(STOP_TIME / DT),
 		Time = #time{cfl = CFL, stop_time = STOP_TIME, dt = DT, last_step = LAST_STEP},
@@ -65,14 +66,40 @@ cut_both_end_element([_|T]) ->
 		[_ | T1] = lists:reverse(T),
 		lists:reverse(T1).
 
-calc_ey({Eps, Dt, Dx}, Ey, Hz) ->
+calc_ey(Const, Ey, Hz) ->
 		Diff_Hz = create_diff_list(Hz),
 		Cut_Ey = cut_both_end_element(Ey),
-		[E - Dt / (Eps * Dx) * DH || {E, DH} <- lists:zip(Cut_Ey, Diff_Hz)].
+		[send_calc_ey_message({E, DH}, Const) || {E, DH} <- lists:zip(Cut_Ey, Diff_Hz)].
 
-calc_hz({Mu, Dt, Dx}, Hz, Ey) ->
+send_calc_ey_message(EH, Const) ->
+		Pid = spawn(fdtd, calc_ey_main, []),
+		Pid ! {self(), {EH, Const}},
+		receive
+				{Pid, Msg} -> Msg
+		end.
+
+calc_ey_main() ->
+		receive
+				{From, {{E, DH}, {Eps, Dt, Dx}}} ->
+						From ! {self(), E - Dt / (Eps * Dx) * DH}
+		end.
+
+calc_hz(Const, Hz, Ey) ->
 		Diff_Ey = create_diff_list(Ey),
-		[H - Dt / (Mu * Dx) * DE || {H, DE} <- lists:zip(Hz, Diff_Ey)].
+		[send_calc_hz_message({H, DE}, Const) || {H, DE} <- lists:zip(Hz, Diff_Ey)].
+
+send_calc_hz_message(EH, Const) ->
+		Pid = spawn(fdtd, calc_hz_main, []),
+		Pid ! {self(), {EH, Const}},
+		receive
+				{Pid, Msg} -> Msg
+		end.
+						
+calc_hz_main() ->
+		receive
+				{From, {{H, DE}, {Mu, Dt, Dx}}} ->
+						From ! {self(), H - Dt / (Mu * Dx) * DE}
+		end.
 
 ey_boundary({Light, Dt, Dx}, {Ey_at_1, Ey_at_N1}, Hist_Ey) ->
 		C = Light * Dt,

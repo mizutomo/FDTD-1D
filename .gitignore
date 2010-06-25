@@ -1,3 +1,5 @@
 *.o
 fdtd
 fdtd*.csv
+test.*
+*.beam
