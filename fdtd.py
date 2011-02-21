@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import math
+import ctypes
 
 class Const():
   """ 定数静的クラス """ 
@@ -27,7 +28,8 @@ class Const():
   CFL = 0.5
 
   # 過渡解析ストップタイム
-  STOP_TIME = 100e-9
+  #STOP_TIME = 100e-9
+  STOP_TIME = 10e-9
 
 def square(x):
   """ 二乗お助け関数 """
@@ -104,6 +106,11 @@ def calc_fdtd(ey, hz, dx, dt, hist_ey):
   print_point_value_header(fp1)
   fp2 = open('fdtd_line.csv', 'w')
 
+  resource = ctypes.CDLL('utility.dylib')
+  resource.get_current_time_by_sec.res_type = ctypes.c_double
+  resource.get_use_memory_size_from_mac.res_type = ctypes.c_long
+
+  tstart = resource.get_current_time_by_sec()
   # メインループ
   step = 0
   while step <= last_step:
@@ -131,9 +138,25 @@ def calc_fdtd(ey, hz, dx, dt, hist_ey):
       print_line_value(fp2, hz, step)
 
     step += 1
+
+  tend = resource.get_current_time_by_sec()
+  memsize = resource.get_use_memory_size_from_mac()
       
   fp1.close()
   fp2.close()
+
+  print "All User Time: %.2f [sec], %.2f [min], %.2f [hour]" % \
+      (tend-tstart, (tend-tstart)/60, (tend-tstart)/3600);
+
+  if 0 <= memsize and memsize < 1024:
+    print "Memory       : %.2f [B]" % (float(memsize))
+  elif 1024 <= memsize and memsize/1024 < 1024:
+    print "Memory       : %.2f [KB]" % (float(memsize/1024))
+  elif 1024 <= memsize/1024 and memsize/1024/1024 < 1024:
+    print "Memory       : %.2f [MB]" % (float(memsize/1024/1024));
+  elif 1024 <= memsize/1024/1024:
+    print "Memory       : %.2f [GB]" % (float(memsize/1024/1024/1024));
+
 
 def main():
   """ メインルーチン """
