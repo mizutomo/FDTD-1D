@@ -146,7 +146,7 @@ void calc_fdtd(double* ey, double* hz, double* dx, double dt, double* hist_ey)
 	double stimulus;
 	FILE *fp1, *fp2;
   double tstart, tend;
-  unsigned long long int memsize;
+  long int memsize;
 
 	// Hz[50] ~ Hz[90]の点のデータを出力するファイル
 	fp1 = fopen("fdtd_point.csv", "w");
@@ -154,7 +154,7 @@ void calc_fdtd(double* ey, double* hz, double* dx, double dt, double* hist_ey)
 	fp2 = fopen("fdtd_line.csv", "w");
 
 	// メインループ
-  tstart = get_current_time_by_sec();
+  get_current_time_by_sec(&tstart);
 	for (step = 0; step <= last_step; step++) {
 		if (step % 100 == 0) {
 			printf("%d / %d (%.2f %%)\n", step, last_step, 
@@ -180,8 +180,8 @@ void calc_fdtd(double* ey, double* hz, double* dx, double dt, double* hist_ey)
 		print_point_value(fp1, hz, step*dt, stimulus);
 		if (step % 100 == 0) print_line_value(fp2, hz, step);
 	}
-  tend = get_current_time_by_sec();
-  memsize = get_use_memory_size_from_mac();
+  get_current_time_by_sec(&tend);
+  get_use_memory_size_from_mac(&memsize);
   
 	fclose(fp1);
 	fclose(fp2);

@@ -3,19 +3,19 @@
 #include "utility.h"
 
 // 現在時刻を返す
-double get_current_time_by_sec()
+void get_current_time_by_sec(double* time)
 {
 	struct rusage t;
 	struct timeval tv;
 	getrusage(RUSAGE_SELF, &t);
 	tv = t.ru_utime;
-	return tv.tv_sec + (double)tv.tv_usec*1e-6;
+	*time = tv.tv_sec + (double)tv.tv_usec*1e-6;
 }
 
 // メモリ消費量の取得
-long int get_use_memory_size_from_mac()
+void get_use_memory_size_from_mac(long int* mem)
 {
 	struct rusage t;
 	getrusage(RUSAGE_SELF, &t);
-	return t.ru_maxrss;
+	*mem = t.ru_maxrss;
 }
