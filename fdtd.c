@@ -1,9 +1,10 @@
-// FDTDメインプログラム
+// FDTDメインプログラム
 // 10.01.06 by T.Mizukusa
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include "common.h"
+#include "utility.h"
 
 // 二乗関数
 double square(double x)
@@ -27,7 +28,7 @@ double find_min_cell(double* ary, int leng)
 	return min;
 }
 
-// X,Y平面に対して、グリッド間隔を設定(X軸)
+// X,Y平面に対して、グリッド間隔を設定(X軸)
 void set_delta(double* dx)
 {
 	int i;
@@ -73,7 +74,7 @@ void ey_boundary(double* ey, double* hist_ey, double dt)
 	ey[NX] = hist_ey[2] + (c - DX) / (c + DX) * (ey[NX-1] - hist_ey[3]);
 }
 
-// Mur1st(アップデート)
+// Mur1st(アップデート)
 void hist_update(double* ey, double* hist_ey)
 {
 	hist_ey[0] = ey[0];
@@ -82,13 +83,13 @@ void hist_update(double* ey, double* hist_ey)
 	hist_ey[3] = ey[NX];
 }
 
-// データ出力1(ヘッダ)
+// データ出力1(ヘッダ)
 void print_point_value_header(FILE* fp)
 {
 	fprintf(fp, "#Time(1), Stimulus(2), hz[10](3), hz[20](4), hz[30](5), hz[40](6), hz[50](7), hz[60](8), hz[70](9), hz[80](10), hz[90](11)\n");
 }
 
-// データ出力1
+// データ出力1
 void print_point_value(FILE* fp, double* data, double time, double stimulus)
 {
 	fprintf(fp, "%g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g\n",
@@ -98,7 +99,7 @@ void print_point_value(FILE* fp, double* data, double time, double stimulus)
 					data[700], data[800], data[900]);
 }
 
-// データ出力2
+// データ出力2
 void print_line_value(FILE* fp, double* data, int step)
 {
 	int i;
@@ -124,7 +125,7 @@ double calc_stimulus(int step, double dt)
 }
 */
 
- // ガウシアンパルス
+ // ガウシアンパルス
 double calc_stimulus(int step, double dt)
 {
 	double tc = 10e-9; 
@@ -144,13 +145,16 @@ void calc_fdtd(double* ey, double* hz, double* dx, double dt, double* hist_ey)
 	int last_step = (int)(STOP_TIME/dt);
 	double stimulus;
 	FILE *fp1, *fp2;
+  double tstart, tend;
+  unsigned long long int memsize;
 
-	// Hz[50] ~ Hz[90]の点のデータを出力するファイル
+	// Hz[50] ~ Hz[90]の点のデータを出力するファイル
 	fp1 = fopen("fdtd_point.csv", "w");
 	print_point_value_header(fp1);
 	fp2 = fopen("fdtd_line.csv", "w");
 
-	// メインループ
+	// メインループ
+  tstart = get_current_time_by_sec();
 	for (step = 0; step <= last_step; step++) {
 		if (step % 100 == 0) {
 			printf("%d / %d (%.2f %%)\n", step, last_step, 
@@ -176,11 +180,27 @@ void calc_fdtd(double* ey, double* hz, double* dx, double dt, double* hist_ey)
 		print_point_value(fp1, hz, step*dt, stimulus);
 		if (step % 100 == 0) print_line_value(fp2, hz, step);
 	}
+  tend = get_current_time_by_sec();
+  memsize = get_use_memory_size_from_mac();
+  
 	fclose(fp1);
 	fclose(fp2);
+
+  printf("All User Time: %.2f [sec], %.2f [min], %.2f [hour]\n", 
+         tend-tstart, (tend-tstart)/60, (tend-tstart)/3600);
+
+  if (0 <= memsize  && memsize < 1024) {
+    printf("Memory       : %.2f [B]\n" , (float)memsize);
+  } else if (1024 <= memsize && memsize/1024 < 1024) {
+    printf("Memory       : %.2f [KB]\n" , (float)memsize/1024);
+  } else if (1024 <= memsize/1024 && memsize/1024/1024 < 1024) {
+    printf("Memory       : %.2f [MB]\n" , (float)memsize/1024/1024);
+  } else if (1024 <= memsize/1024/1024) {
+    printf("Memory       : %.2f [GB]\n" , (float)memsize/1024/1024/1024);
+  }
 }
 
-// 出力ファイルヘッダ
+// 出力ファイルヘッダ
 int main(int argc, char** argv)
 {
 	double* dx;
@@ -191,9 +211,9 @@ int main(int argc, char** argv)
 
 	double dt;
 
-	// グリッド配列の確保&初期化
+	// グリッド配列の確保&初期化
 	dx = (double *)malloc(sizeof(double) * NX);
-	// グリッド初期化
+	// グリッド初期化
 	set_delta(dx);
 
 	// CFL条件の設定(BCK込み)
