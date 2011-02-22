@@ -177,8 +177,8 @@ void calc_fdtd(double* ey, double* hz, double* dx, double dt, double* hist_ey)
 		calc_hz(hz, ey, dx, dt);
 
 		// 波形出力
-		print_point_value(fp1, hz, step*dt, stimulus);
-		if (step % 100 == 0) print_line_value(fp2, hz, step);
+		/* print_point_value(fp1, hz, step*dt, stimulus); */
+		/* if (step % 100 == 0) print_line_value(fp2, hz, step); */
 	}
   get_current_time_by_sec(&tend);
   get_use_memory_size_from_mac(&memsize);
