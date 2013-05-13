@@ -4,4 +4,4 @@
 void get_current_time_by_sec(double* time);
 void get_use_memory_size_from_mac(long int* mem);
 
-#endif /* _UTILITY_H_ */f
+#endif /* _UTILITY_H_ */

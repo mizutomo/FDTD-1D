@@ -2,23 +2,23 @@
 
 CC = /usr/bin/gcc
 #CC = icc
-OBJS = fdtd.o utility.dylib
+OBJS = fdtd.o utility.o
 ##CFLAGS = -g -Wall -O2 -pedantic
-CFLAGS = -g -Wall -O2 -fopenmp
+CFLAGS = -g -Wall -O3 -fopenmp
 DEBUGFLAG = -pg
-INCLUDES = -I. -I/opt/local/include
-LIBS = -L. -L/opt/local/lib 
+INCLUDES = -I.
+LIBS = -L.
 TARG = fdtd
 
-all: $(TARG)
+all: $(TARG) utility.so
 $(TARG): $(OBJS)
-	$(CC) $(CFLAGS) $(INCLUDES) $(LIBS) $(LIBOPT) -m32 -g -o $@ $(OBJS)
+	$(CC) $(CFLAGS) $(INCLUDES) $(LIBS) $(LIBOPT) -lm -g -o $@ $(OBJS)
 
-.c.o: 
-	$(CC) $(CFLAGS) $(INCLUDES) $(LIBS) $(LIBOPT) -m32 -g -o $@ -c $<
+.c.o:
+	$(CC) $(CFLAGS) $(INCLUDES) $(LIBS) $(LIBOPT) -fPIC -g -o $@ -c $<
 
-utility.dylib: utility.c
-	$(CC) $(CFLAGS) $(INCLUDES) $(LIBS) $(LIBOPT) -dynamiclib -m32 -o $@ $<
+utility.so: utility.o
+	$(CC) $(CFLAGS) $(INCLUDES) $(LIBS) $(LIBOPT) -shared -fPIC -o $@ $<
 
 .PHONY: clean
 clean:

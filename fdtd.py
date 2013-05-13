@@ -5,7 +5,7 @@ import math
 import ctypes
 
 class Const():
-  """ 定数静的クラス """ 
+  """ 定数静的クラス """
   PI = 3.14159
   LIGHT = 2.99792458e8
   PERMITTIVITY = 8.85418782e-12
@@ -106,11 +106,11 @@ def calc_fdtd(ey, hz, dx, dt, hist_ey):
   print_point_value_header(fp1)
   fp2 = open('fdtd_line.csv', 'w')
 
-  resource = ctypes.CDLL('utility.dylib')
+  resource = ctypes.CDLL('./utility.so')
 
   tstart = ctypes.c_double()
   resource.get_current_time_by_sec(ctypes.byref(tstart))
-  
+
   # メインループ
   step = 0
   while step <= last_step:
@@ -143,7 +143,7 @@ def calc_fdtd(ey, hz, dx, dt, hist_ey):
   resource.get_current_time_by_sec(ctypes.byref(tend))
   memsize = ctypes.c_long()
   resource.get_use_memory_size_from_mac(ctypes.byref(memsize))
-      
+
   fp1.close()
   fp2.close()
 
@@ -163,7 +163,7 @@ def calc_fdtd(ey, hz, dx, dt, hist_ey):
 def main():
   """ メインルーチン """
   hist_ey = [0.0] * 4
-  
+
   # グリッド配列の確保&初期化
   dx = [Const.DX] * Const.NX
 
@@ -180,7 +180,7 @@ def main():
   print "dt     : %g [sec]" % (dt);
 
   # 電磁界配列の確保
-  print "Allocating Memory...", 
+  print "Allocating Memory...",
   ey = [0.0] * (Const.NX+1)
   hz = [0.0] * Const.NX
   print "Done"
